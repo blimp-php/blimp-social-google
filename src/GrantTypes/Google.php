@@ -55,7 +55,7 @@ class Google {
             'access_token' => $token
         ];
 
-        $token_data = \Blimp\Accounts\Oauth2\Protocol::get('https://www.googleapis.com/oauth2/v1/tokeninfo', $params);
+        $token_data = \Blimp\Accounts\Oauth2\Protocol::get('https://www.googleapis.com/oauth2/v1/tokeninfo', $params, [], true);
         if($token_data instanceof Response) {
             $this->error_code = Response::HTTP_BAD_REQUEST;
             $this->error = 'invalid_grant';
@@ -63,7 +63,7 @@ class Google {
             return false;
         }
         
-        if($token_data['data']['userid'] !== $account->getProfileData()['id']) {
+        if($token_data['user_id'] !== $account->getProfileData()['id']) {
             $this->error_code = Response::HTTP_BAD_REQUEST;
             $this->error = 'invalid_grant';
             $this->error_description = 'Invalid resource owner credentials.';

@@ -49,22 +49,24 @@ class GoogleAccessToken extends Oauth2AccessToken {
         return $redirect_url;
     }
 
-    public function processAccountData(array $access_token) {
-        if ($access_token != NULL && (!empty($access_token['access_token']) || !empty($access_token['accessToken']))) {
+    public function processAccountData($access_token) {
+        if ($access_token != NULL) {
+            $token = $access_token['token'];
+            
             /* Get profile_data */
             $params = [
-                'access_token' => !empty($access_token['access_token']) != NULL ? $access_token['access_token'] : $access_token['accessToken'],
-                'fields' => $this->api['config']['google']['fields'],
-                'type' => 'small'
+                'access_token' => $token,
+                'fields' => $this->api['config']['google']['fields']
             ];
 
             $profile_data = Protocol::get('https://www.googleapis.com/userinfo/v2/me', $params);
+
             if($profile_data instanceof Response) {
                 return $profile_data;
             }
 
             if ($profile_data != null && $profile_data['id'] != null) {
-                if($access_token['userID'] != null && $profile_data['id'] != $access_token['userID']) {
+                if(!empty($access_token['account']) && $profile_data['email'] != $access_token['account']) {
                     throw new BlimpHttpException(Response::HTTP_UNAUTHORIZED, "Invalid access_token");
                 }
                 
@@ -83,7 +85,7 @@ class GoogleAccessToken extends Oauth2AccessToken {
                     $account->setId($id);
                     $account->setType('google');
                 }
-                
+
                 $resource_uri = '/accounts/' . $account->getId();
                 
                 $secret = NULL;
